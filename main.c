@@ -28,7 +28,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-//ÓÃ»§Í·ÎÄ¼ş
+//ç”¨æˆ·å¤´æ–‡ä»¶
 #include "sys.h"
 #include "delay.h"
 #include "24l01.h"
@@ -37,34 +37,36 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-//Ë½ÓĞÀàĞÍ¶¨Òå
+//ç§æœ‰ç±»å‹å®šä¹‰
 
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-//Ë½ÓĞ¶¨Òå
+//ç§æœ‰å®šä¹‰
 
 #define a ox1;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-//Ë½ÓĞºê
+//ç§æœ‰å®
 
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-//Ë½ÓĞ±äÁ¿
+//ç§æœ‰å˜é‡
 u8 tmp_buf[20]= {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19};
 u8 rv_data[32];
-u8 mode=0;//Ä£Ê½Ñ¡Ôñ 0·¢ËÍÄ£Ê½ 1½ÓÊÕÄ£Ê½
+u8 mode=0;//æ¨¡å¼é€‰æ‹© 0å‘é€æ¨¡å¼ 1æ¥æ”¶æ¨¡å¼
 u8 status_tx=0;
 u8 status_rx=0;
+//uint16_t è¡¨ç¤ºæ•°æ®èŒƒå›´åˆ™æ˜¯0~65535ã€‚
 uint16_t ADC_Value[120];
 uint16_t adc_aver[10];
+uint8_t  send_val[10];
 uint16_t sumref7=0,sumref15=0;
 uint16_t count1=0,count2=0;
 	
@@ -74,7 +76,7 @@ uint32_t count_send_fail=0;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-//Ë½ÓĞº¯ÊıÔ­ĞÍ
+//ç§æœ‰å‡½æ•°åŸå‹
 
 /* USER CODE END PFP */
 
@@ -117,41 +119,41 @@ int main(void)
 	MX_ADC1_Init();
 	MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-//³õÊ¼»¯nrf
-    NRF24L01_Init();  //³õÊ¼»¯NRF24L01
-    if(NRF24L01_Check())//º¯Êı·µ»ØÖµÎª1ËµÃ÷¼ì²â24L01´íÎó	£¡£¡£¡
+//åˆå§‹åŒ–nrf
+    NRF24L01_Init();  //åˆå§‹åŒ–NRF24L01
+    if(NRF24L01_Check())//å‡½æ•°è¿”å›å€¼ä¸º1è¯´æ˜æ£€æµ‹24L01é”™è¯¯	ï¼ï¼ï¼
     {
-        printf("\n\r nrf²âÊÔÊ§°Ü nrfÎ´Á¬½Ó\n\r");
+        printf("\n\r nrfæµ‹è¯•å¤±è´¥ nrfæœªè¿æ¥\n\r");
     }
 		
-//³õÊ¼»¯adcÏà¹Ø
-    HAL_ADCEx_Calibration_Start(&hadc1);//Ğ£×¼
+//åˆå§‹åŒ–adcç›¸å…³
+    HAL_ADCEx_Calibration_Start(&hadc1);//æ ¡å‡†
     HAL_Delay(10);
     if(HAL_TIM_Base_Start_IT(&htim3)!=HAL_OK) 
-		printf("\r\n******** ¶¨Ê±Æ÷´ò¿ªÊ§°Ü ********\r\n\r\n");
-    //¿ªÆôdma´«Êä£¬´«Êä60¸öÖµ Ã¿10¸öÈ¡Æ½¾ùÖµ£¬¹²6¸öÓĞĞ§Êı¾İ
+		printf("\r\n******** å®šæ—¶å™¨æ‰“å¼€å¤±è´¥ ********\r\n\r\n");
+    //å¼€å¯dmaä¼ è¾“ï¼Œä¼ è¾“60ä¸ªå€¼ æ¯10ä¸ªå–å¹³å‡å€¼ï¼Œå…±6ä¸ªæœ‰æ•ˆæ•°æ®
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&ADC_Value, 120);
 
     if(NRF24L01_Check()==0)
     {
-        printf("\n\r nrf²âÊÔ³É¹¦ nrfÁ¬½Ó\n\r");
+        printf("\n\r nrfæµ‹è¯•æˆåŠŸ nrfè¿æ¥\n\r");
 			  SPI1_SetSpeed(SPI_BAUDRATEPRESCALER_16);
-        //Rx½ÓÊÕÄ£Ê½
+        //Rxæ¥æ”¶æ¨¡å¼
         if(mode == 1)
         {
-            printf("\n\r ½ÓÊÕÄ£Ê½\n\r");
+            printf("\n\r æ¥æ”¶æ¨¡å¼\n\r");
             for(int i=0; i<34; i++)
             {
-                NRF24L01_RX_Mode();//½«ÉäÆµÄ£¿éÅäÖÃÎª½ÓÊÕÄ£Ê½
-                status_rx  = NRF24L01_RxPacket(tmp_buf);//Ò»´Î´«Êä32¸ö×Ö½Ú¡£½ÓÊÕµÄÊı¾İ±£´æÔÚtmp_bufÊı×éÖĞ¡£·µ»ØÖµ0Îª½ÓÊÕ³É¹¦
+                NRF24L01_RX_Mode();//å°†å°„é¢‘æ¨¡å—é…ç½®ä¸ºæ¥æ”¶æ¨¡å¼
+                status_rx  = NRF24L01_RxPacket(tmp_buf);//ä¸€æ¬¡ä¼ è¾“32ä¸ªå­—èŠ‚ã€‚æ¥æ”¶çš„æ•°æ®ä¿å­˜åœ¨tmp_bufæ•°ç»„ä¸­ã€‚è¿”å›å€¼0ä¸ºæ¥æ”¶æˆåŠŸ
                 HAL_Delay (1000);
             }
         }
-		//·¢ËÍÄ£Ê½
+		//å‘é€æ¨¡å¼
         if(mode == 0)
         {
-            printf("\n\r ·¢ËÍÄ£Ê½\n\r");
-            NRF24L01_TX_Mode();//½«ÉäÆµÄ£¿éÅäÖÃÎª·¢ÉäÄ£Ê½
+            printf("\n\r å‘é€æ¨¡å¼\n\r");
+            NRF24L01_TX_Mode();//å°†å°„é¢‘æ¨¡å—é…ç½®ä¸ºå‘å°„æ¨¡å¼
         }
     }
 
@@ -216,10 +218,10 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-//DMA´«ÊäÍê³ÉÖĞ¶Ï»Øµ÷º¯Êı   Ã»ÓĞ¿ªÆôdmaÖĞ¶Ï  ºÄÊ±
+//DMAä¼ è¾“å®Œæˆä¸­æ–­å›è°ƒå‡½æ•°   æ²¡æœ‰å¼€å¯dmaä¸­æ–­  è€—æ—¶
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
-	//¶Ôadc×ª»»µÃµ½µÄÖµÈ¡Æ½¾ù ÓÉÓÚ³Ë·¨ÔËËãÊ±¼äÌ«³¤£¬ÕâÀïÖ»°Ñ¶ÔÓ¦µÄ10¸öÖµÀÛ¼Ó¡£
+	//å¯¹adcè½¬æ¢å¾—åˆ°çš„å€¼å–å¹³å‡ ç”±äºä¹˜æ³•è¿ç®—æ—¶é—´å¤ªé•¿ï¼Œè¿™é‡ŒåªæŠŠå¯¹åº”çš„10ä¸ªå€¼ç´¯åŠ ã€‚
 	
 //	for(int i=0,l=0,k=0;i<16;i++)
 //	{
@@ -232,24 +234,33 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 //						k=0;
 //				}		
 //	}	
-				
+		
 
-	// ÈÔÈ»ÊÇ10´ÎÇóºÍ£¬µ«Ã»ÓĞ¼ÓÈë²Î¿¼µçÑ¹£¨¼´ sumref7 sumref15£©ºÍ 7000
-	// by ¸ßè¯
+		for(int i = 0; i < 8; i ++)
+			adc_aver[i] = 0;
+
+	// ä»ç„¶æ˜¯10æ¬¡æ±‚å’Œï¼Œä½†æ²¡æœ‰åŠ å…¥å‚è€ƒç”µå‹ï¼ˆå³ sumref7 sumref15ï¼‰å’Œ 7000
+	// by é«˜ç’‡
+		int times = 9;
+		float t1 = 0.0;
+		float t2 = 0.0;
 		for(int i = 0; i < 4; i ++)
 		{
-			for(int j = 0; j < 10; j ++)
+			for(int j = 0; j < times; j ++)
 			{
-				adc_aver[i] += ADC_Value[i + j*6];
-				adc_aver[i+4] += ADC_Value[i + 60 + j*6];
+				adc_aver[i] += (ADC_Value[i + j*6]/times);
+				adc_aver[i+4] += (ADC_Value[i + 60 + j*6]/times);
 			}
 			
-			// ¼ÓºÍºó³ı10È¡Æ½¾ù
-			adc_aver[i] /= 10;
-			adc_aver[i+4] /= 10;
+
+			t1 = (float)adc_aver[i] * 255.0 / 4096.0;
+			send_val[i] = (uint8_t)t1;
+			
+			t2 = (float)adc_aver[i+4] * 255.0 / 4096.0;
+			send_val[i+4] = (uint8_t)t2;
 		}
 			
-		//ÕâÀïÃ¿¸öÇóºÍÖµ¶¼+7000£¬ÊÇÎªÁË±ÜÃâ³öÏÖ¸ºÖµ¡£
+		//è¿™é‡Œæ¯ä¸ªæ±‚å’Œå€¼éƒ½+7000ï¼Œæ˜¯ä¸ºäº†é¿å…å‡ºç°è´Ÿå€¼ã€‚
 //			adc_aver[0]=ADC_Value[0]+ADC_Value[6]+ADC_Value[12]+ADC_Value[18]+ADC_Value[24]+ADC_Value[30]+ADC_Value[36]
 //					+ADC_Value[42]+ADC_Value[48]+ADC_Value[54]-sumref7+7000;//Fz
 //			adc_aver[1]=ADC_Value[1]+ADC_Value[7]+ADC_Value[13]+ADC_Value[19]+ADC_Value[25]+ADC_Value[31]+ADC_Value[37]
@@ -260,9 +271,9 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 //					+ADC_Value[45]+ADC_Value[51]+ADC_Value[57]-sumref7+7000;//T
 //					
 //			sumref7=ADC_Value[4]+ADC_Value[10]+ADC_Value[16]+ADC_Value[22]+ADC_Value[28]+ADC_Value[34]+ADC_Value[40]
-//					+ADC_Value[46]+ADC_Value[52]+ADC_Value[58];//²Î¿¼µçÑ¹0.7µÄÊ®´ÎÇóºÍ
+//					+ADC_Value[46]+ADC_Value[52]+ADC_Value[58];//å‚è€ƒç”µå‹0.7çš„åæ¬¡æ±‚å’Œ
 //			sumref15=ADC_Value[5]+ADC_Value[11]+ADC_Value[17]+ADC_Value[23]+ADC_Value[29]+ADC_Value[35]+ADC_Value[41]
-//					+ADC_Value[47]+ADC_Value[53]+ADC_Value[59];//²Î¿¼µçÑ¹1.5µÄÊ®´ÎÇóºÍ
+//					+ADC_Value[47]+ADC_Value[53]+ADC_Value[59];//å‚è€ƒç”µå‹1.5çš„åæ¬¡æ±‚å’Œ
 //					
 //			
 //			adc_aver[4]=ADC_Value[60]+ADC_Value[66]+ADC_Value[72]+ADC_Value[78]+ADC_Value[84]+ADC_Value[90]+ADC_Value[96]
@@ -275,20 +286,22 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 //					+ADC_Value[105]+ADC_Value[111]+ADC_Value[117]-sumref7+7000;//T
 //					
 //			sumref7=ADC_Value[64]+ADC_Value[70]+ADC_Value[76]+ADC_Value[82]+ADC_Value[88]+ADC_Value[94]+ADC_Value[100]
-//					+ADC_Value[106]+ADC_Value[112]+ADC_Value[118];//²Î¿¼µçÑ¹0.7µÄÊ®´ÎÇóºÍ
+//					+ADC_Value[106]+ADC_Value[112]+ADC_Value[118];//å‚è€ƒç”µå‹0.7çš„åæ¬¡æ±‚å’Œ
 //			sumref15=ADC_Value[65]+ADC_Value[71]+ADC_Value[77]+ADC_Value[83]+ADC_Value[89]+ADC_Value[95]+ADC_Value[101]
-//					+ADC_Value[107]+ADC_Value[113]+ADC_Value[119];//²Î¿¼µçÑ¹1.5µÄÊ®´ÎÇóºÍ
+//					+ADC_Value[107]+ADC_Value[113]+ADC_Value[119];//å‚è€ƒç”µå‹1.5çš„åæ¬¡æ±‚å’Œ
 
-//			adc_aver[8]=ADC_Value[118];//ref0.7²Î¿¼µçÑ¹µÄµ¥´Î²âÁ¿Öµ
-//			adc_aver[9]=ADC_Value[119];//ref1.5²Î¿¼µçÑ¹µÄµ¥´Î²âÁ¿Öµ
+//			adc_aver[8]=ADC_Value[118];//ref0.7å‚è€ƒç”µå‹çš„å•æ¬¡æµ‹é‡å€¼
+//			adc_aver[9]=ADC_Value[119];//ref1.5å‚è€ƒç”µå‹çš„å•æ¬¡æµ‹é‡å€¼
 
-				
-	//adc_averÊı×é£º1-4£ºz/x/y/TµÄÊ®´Î²âÁ¿ÖµµÄºÍ£»5-8£ºz/x/y/TµÄÊ®´Î²âÁ¿ÖµµÄºÍ£»9£ºref0.7µÄµ¥´Î²âÁ¿Öµ£»10£ºref1.5µÄµ¥´Î²âÁ¿Öµ
-	status_tx=NRF24L01_TxPacket((uint8_t *)adc_aver);//nrfÉäÆµ·¢ËÍÊı¾İ
+	
+	
 
+	//adc_averæ•°ç»„ï¼š1-4ï¼šz/x/y/Tçš„åæ¬¡æµ‹é‡å€¼çš„å’Œï¼›5-8ï¼šz/x/y/Tçš„åæ¬¡æµ‹é‡å€¼çš„å’Œï¼›9ï¼šref0.7çš„å•æ¬¡æµ‹é‡å€¼ï¼›10ï¼šref1.5çš„å•æ¬¡æµ‹é‡å€¼
+	status_tx=NRF24L01_TxPacket((uint8_t *)send_val);//nrfå°„é¢‘å‘é€æ•°æ®
+	
 
-//	status_tx=NRF24L01_TxPacket((uint8_t *)tmp_buf);//nrfÉäÆµ·¢ËÍÊı¾İ
-	//Êä³ö·¢ËÍ×´Ì¬  µ÷ÊÔ×´Ì¬ÏÂ²ÅÊ¹ÓÃ
+//	status_tx=NRF24L01_TxPacket((uint8_t *)tmp_buf);//nrfå°„é¢‘å‘é€æ•°æ®
+	//è¾“å‡ºå‘é€çŠ¶æ€  è°ƒè¯•çŠ¶æ€ä¸‹æ‰ä½¿ç”¨
 //	printf("z-%d,x-%d,y-%d,T-%d  ",adc_aver[0],adc_aver[1],adc_aver[2],adc_aver[3]);
 
 //  if(status_tx!=0x20)
@@ -303,19 +316,19 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
   * @param  htim TIM handle
   * @retval None
   */
-//¶¨Ê±Æ÷È«¾ÖÖĞ¶Ï»Øµ÷º¯Êı
+//å®šæ—¶å™¨å…¨å±€ä¸­æ–­å›è°ƒå‡½æ•°
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 
     /* Prevent unused argument(s) compilation warning */
-	//Ã¿¸ôÒ»¶ÎÊ±¼äÊä³ö·¢ËÍ³É¹¦´ÎÊı µ÷ÊÔ×´Ì¬ÏÂ²ÅÊ¹ÓÃ
+	//æ¯éš”ä¸€æ®µæ—¶é—´è¾“å‡ºå‘é€æˆåŠŸæ¬¡æ•° è°ƒè¯•çŠ¶æ€ä¸‹æ‰ä½¿ç”¨
 //    if(htim->Instance==TIM3)
 //    {   
 //        count2++;
 //		}
-//		if(count2==3000)//3sÊä³öÒ»´Î¶ª°ü¸öÊı
+//		if(count2==3000)//3sè¾“å‡ºä¸€æ¬¡ä¸¢åŒ…ä¸ªæ•°
 //    {
-//				printf("shibai %d.%d",count_send_fail,count1); //count1ÊÇ·¢ËÍ³É¹¦µÄ´ÎÊı
+//				printf("shibai %d.%d",count_send_fail,count1); //count1æ˜¯å‘é€æˆåŠŸçš„æ¬¡æ•°
 //				count_send_fail=0;
 //        count2=0;
 //		}
