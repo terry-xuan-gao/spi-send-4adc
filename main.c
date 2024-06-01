@@ -67,6 +67,8 @@ u8 status_rx=0;
 uint16_t ADC_Value[120];
 uint16_t adc_aver[10];
 uint8_t  send_val[10];
+uint8_t  hight_part[10];
+uint8_t  lower_part[10];	
 uint16_t sumref7=0,sumref15=0;
 uint16_t count1=0,count2=0;
 	
@@ -242,22 +244,26 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	// 仍然是10次求和，但没有加入参考电压（即 sumref7 sumref15）和 7000
 	// by 高璇
 		int times = 9;
-		float t1 = 0.0;
-		float t2 = 0.0;
+//		float t1 = 0.0;
+//		float t2 = 0.0;
 		for(int i = 0; i < 4; i ++)
 		{
 			for(int j = 0; j < times; j ++)
 			{
 				adc_aver[i] += (ADC_Value[i + j*6]/times);
-				adc_aver[i+4] += (ADC_Value[i + 60 + j*6]/times);
+				//adc_aver[i+4] += (ADC_Value[i + 60 + j*6]/times);
 			}
 			
-
-			t1 = (float)adc_aver[i] * 255.0 / 4096.0;
-			send_val[i] = (uint8_t)t1;
+			hight_part [i] = adc_aver [i] / 255; 
+			lower_part [i] = adc_aver [i] % 255;
+			send_val[i * 2] = hight_part[i];
+			send_val[i * 2 + 1] = lower_part[i];
 			
-			t2 = (float)adc_aver[i+4] * 255.0 / 4096.0;
-			send_val[i+4] = (uint8_t)t2;
+//			t1 = (float)adc_aver[i] * 255.0 / 4096.0;
+//			send_val[i] = (uint8_t)t1;
+//			
+//			t2 = (float)adc_aver[i+4] * 255.0 / 4096.0;
+//			send_val[i+4] = (uint8_t)t2;
 		}
 			
 		//这里每个求和值都+7000，是为了避免出现负值。
